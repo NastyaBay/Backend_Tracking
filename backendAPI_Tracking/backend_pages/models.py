@@ -7,11 +7,11 @@ class Page(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=100, default='Страница')
     published = models.BooleanField(default=False)
-    page_link = models.URLField(blank=True)
-    qr_link = models.URLField(blank=True)
-
+    page_link = models.CharField(max_length=255, unique=True)
+    qr_link = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    json_data = models.JSONField(blank=True, null=True)
     def __str__(self):
-        return self.title
+        return f"{self.user} {self.title}"
 
     class Meta:
         verbose_name = "Страница"

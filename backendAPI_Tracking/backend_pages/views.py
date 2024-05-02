@@ -4,42 +4,57 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Page, PageStatistics
 from .serializer import PageSerializer, PageStatisticsSerializer
+from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
-class CreatePage(APIView):
-    def post(self, request, format=None):
-        serializer = PageSerializer(data=request.data)
+class PageListView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        user = request.user.id
+        request_data = request.data.copy()
+        request_data["user"] = user
+        serializer = PageSerializer(data=request_data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class GetPages(APIView):
-    def get(self, request, format=None):
-        pages = Page.objects.all()
-        serializer = PageSerializer(pages, many=True)
+    def get(self, request):
+
+        user_pages = Page.objects.filter(user=request.user.id)
+        serializer = PageSerializer(user_pages, many=True)
         return Response(serializer.data)
 
-class GetSinglePage(APIView):
-    def get(self, request, pk, format=None):
-        try:
-            page = Page.objects.get(pk=pk)
-        except Page.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+class PageDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, url):
+        page = get_object_or_404(Page, page_link=url)
+        if page.user != request.user:
+            return Response({"detail": "Вы не имеете доступа к этой странице."}, status=status.HTTP_403_FORBIDDEN)
         serializer = PageSerializer(page)
         return Response(serializer.data)
 
-    def put(self, request, pk, format=None):
-        try:
-            page = Page.objects.get(pk=pk)
-        except Page.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = PageSerializer(page, data=request.data)
+    def put(self, request, url):
+        page = get_object_or_404(Page, page_link=url)
+        if page.user != request.user:
+            return Response({"detail": "Вы не имеете доступа к этой странице."}, status=status.HTTP_403_FORBIDDEN)
+        user = request.user.id
+        request_data = request.data.copy()
+        request_data["user"] = user
+        serializer = PageSerializer(page, data=request_data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, url):
+        page = get_object_or_404(Page, page_link=url)
+        if page.user != request.user:
+            return Response({"detail": "Вы не имеете доступа к этой странице."}, status=status.HTTP_403_FORBIDDEN)
+        page.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class PageStatisticsList(APIView):
     def get(self, request):

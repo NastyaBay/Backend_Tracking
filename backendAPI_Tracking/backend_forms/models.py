@@ -5,8 +5,8 @@ from django.conf import settings
 class Form(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=100, default='Форма')
-    form_link = models.URLField(blank=True)
-    qr_link = models.URLField(blank=True)
+    form_link = models.CharField(max_length=255)
+    json_data = models.JSONField(blank=True, null=True)
 
     def __str__(self):
         return self.title

@@ -4,7 +4,7 @@ from .models import Page, PageStatistics
 class PageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Page
-        fields = ['id', 'user', 'published', 'title', 'page_link', 'qr_link']
+        fields = ['id', 'user', 'published', 'title', 'page_link', 'qr_link', 'json_data']
 
 class PageStatisticsSerializer(serializers.ModelSerializer):
     class Meta:
