@@ -21,7 +21,6 @@ class PageListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-
         user_pages = Page.objects.filter(user=request.user.id)
         serializer = PageSerializer(user_pages, many=True)
         return Response(serializer.data)
